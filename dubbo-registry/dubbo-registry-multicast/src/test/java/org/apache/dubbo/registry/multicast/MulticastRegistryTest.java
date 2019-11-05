@@ -92,7 +92,9 @@ public class MulticastRegistryTest {
         Set<URL> registered;
         // clear first
         registered = registry.getRegistered();
-        registered.clear();
+        for (URL url : registered) {
+            registry.unregister(url);
+        }
 
         for (int i = 0; i < 2; i++) {
             registry.register(serviceUrl);
@@ -227,34 +229,35 @@ public class MulticastRegistryTest {
         MulticastSocket multicastSocket = null;
         try {
             // ipv4 multicast address
-            try {
-                multicastAddress = InetAddress.getByName("224.55.66.77");
-                multicastSocket = new MulticastSocket(2345);
-                multicastSocket.setLoopbackMode(false);
-                NetUtils.setInterface(multicastSocket, multicastAddress);
-                multicastSocket.joinGroup(multicastAddress);
-            } finally {
-                if (multicastSocket != null) {
-                    multicastSocket.close();
-                }
-            }
-
-            // multicast ipv6 address,
-            /*try {
-                multicastAddress = InetAddress.getByName("ff01::1");
-                multicastSocket = new MulticastSocket();
-                multicastSocket.setLoopbackMode(false);
-                NetUtils.setInterface(multicastSocket, multicastAddress);
-                multicastSocket.joinGroup(multicastAddress);
-            } finally {
-                if (multicastSocket != null) {
-                    multicastSocket.close();
-                }
-            }*/
-
+            multicastAddress = InetAddress.getByName("224.55.66.77");
+            multicastSocket = new MulticastSocket(2345);
+            multicastSocket.setLoopbackMode(false);
+            NetUtils.setInterface(multicastSocket, false);
+            multicastSocket.joinGroup(multicastAddress);
         } catch (Exception e) {
             Assertions.fail(e);
+        } finally {
+            if (multicastSocket != null) {
+                multicastSocket.close();
+            }
         }
+
+        // multicast ipv6 address,
+        try {
+            multicastAddress = InetAddress.getByName("ff01::1");
+
+            multicastSocket = new MulticastSocket();
+            multicastSocket.setLoopbackMode(false);
+            NetUtils.setInterface(multicastSocket, true);
+            multicastSocket.joinGroup(multicastAddress);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        } finally {
+            if (multicastSocket != null) {
+                multicastSocket.close();
+            }
+        }
+
     }
 
 }
